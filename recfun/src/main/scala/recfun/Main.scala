@@ -16,8 +16,7 @@ object Main {
     */
   def pascal(c: Int, r: Int): Int = {
 
-    @tailrec
-    def aux(c: Int, r: Int, acum){
+    def aux(c: Int, r: Int) = {
       if (c == 0 || c == r) {
         1;
       }
@@ -25,6 +24,8 @@ object Main {
         pascal(r - 1, c - 1) + pascal(r - 1, c);
       }
     }
+
+    aux(c,r)
   }
 
   /**
@@ -35,26 +36,32 @@ object Main {
     import scala.annotation.tailrec
 
     @tailrec
-    def aux(chars: List[Char], w: Int): Boolean = {
-      if(chars == List.empty) 0 == w
-
-      else {
-        if(chars.head == '(')
-            aux(chars.tail, w + 1)
-          else if(chars.head == ')' && w > 0)
-          aux(chars.tail, w - 1)
-        else
-          aux(chars.tail, w)
-      }
+    def accumulateParens(chars: List[Char], count: Int): Int = {
+      if (count < 0) -1
+      else if (chars.isEmpty) count
+      else if (chars.head == '(')
+          accumulateParens(chars.tail, count + 1)
+        else if (chars.head == ')')
+        accumulateParens(chars.tail, count - 1)
+      else
+        accumulateParens(chars.tail, count)
     }
 
-    aux(chars, 0)
+    accumulateParens(chars, 0) == 0;
   }
+
 
   /**
     * Exercise 3
     */
   def countChange(money: Int, coins: List[Int]): Int = {
-    1
+    if (money == 0) 1
+    else if (money < 0) 0
+    else if (coins.isEmpty) 0
+    else {
+      val sortedCoins = coins.sorted
+      countChange(money, sortedCoins.init) +
+      countChange(money - sortedCoins.max, sortedCoins)
+    }
   }
 }
