@@ -34,11 +34,22 @@ object Anagrams {
     *  same character, and are represented as a lowercase character in the occurrence list.
     *
     * (input a string, outputs a List with the count of each caracter
+    *
+    * Outputs sorted by carachter alphabetical order
+    *
+    * E.g:
+    * If input is String = olasd asd asd dsad
+    * returns List[(Char, Int)] = List[(Char, Int)] = List(( ,3), (a,4), (d,5), (l,1), (o,1), (s,4))
     */
   def wordOccurrences(w: Word): Occurrences = {
+    // Let's just get the lower case
     val lower:List[Char] = w.toLowerCase.toList;
-    val groupedChars = lower.groupBy(x=>x).toList
-    groupedChars map ( i=> (i._1, i._2.length)).sorted
+    // Then group all chars
+    val groupedChars:List[(Char, List[Char])] = lower.groupBy(x=>x).toList
+    // Now count them
+    val unsortedWordOccurrences:Occurrences = groupedChars map ( x => (x._1, x._2.length))
+    // Now sort them
+    unsortedWordOccurrences.toList.sorted
   }
 
   /** Converts a sentence into its character occurrence list. */
@@ -64,10 +75,13 @@ object Anagrams {
     *
     */
   lazy val dictionaryByOccurrences: Map[Occurrences, List[Word]] = {
-    val x = dictionary map (i => (wordOccurrences(i),i))                 // gives a List[(Occurrences, Word)] for each word
-    val x1 = x.groupBy(i => (i._1))                                      // puts them in a Map where the key refers to the previous line
-    val x2 = x1.toList map (i=> (i._1, i._2 map (y => y._2)))            // puts that in a list
-     x2.toMap
+    // Get's List[(Occurrences, Word)] for each word
+    val x = dictionary map (i => (wordOccurrences(i),i))
+    // puts them in a Map where the key refers character and all values for that char are grouped
+    val x1 = x.groupBy(i => (i._1))
+    // puts that in a list
+    val x2 = x1.toList map (i=> (i._1, i._2 map (y => y._2)))
+    x2.toMap
   }
 
   /** Returns all the anagrams of a given word. */
