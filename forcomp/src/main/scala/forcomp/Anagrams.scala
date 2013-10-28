@@ -32,12 +32,13 @@ object Anagrams {
     *
     *  Note: the uppercase and lowercase version of the character are treated as the
     *  same character, and are represented as a lowercase character in the occurrence list.
-    * 
+    *
     * (input a string, outputs a List with the count of each caracter
     */
   def wordOccurrences(w: Word): Occurrences = {
     val lower:List[Char] = w.toLowerCase.toList;
-    toList.groupBy(_=>_).toList map ( i=> (i._1, i._2.length))).sorted
+    val groupedChars = lower.groupBy(x=>x).toList
+    groupedChars map ( i=> (i._1, i._2.length)).sorted
   }
 
   /** Converts a sentence into its character occurrence list. */
