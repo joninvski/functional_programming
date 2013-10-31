@@ -111,17 +111,34 @@ object Anagrams {
     *  Note that the order of the occurrence list subsets does not matter -- the subsets
     *  in the example above could have been displayed in some other order.
     */
-  def combinations(occurrences: Occurrences): List[Occurrences] = {
-    occurrences match {
-      case Nil=>List(Nil)
-      case x::xs=>
-      for{
-        aux<-(0 to x._2).map((x._1,_)).toList
-        occscombinations<-combinations(xs)
+  def combinations(occurrences: Occurrences): List[Occurrences] =
+  {
+    // Fills the char in the List of occurences to be returned
+    def increment(c:Char, occurrences:Occurrences):Occurrences = occurrences match {
+      case Nil => List((c,1))            // If  there are no occurrences, just leave the char with count 1
+      case (o::os) => {
+        if(c != o._1)                    // If it is the first
+          (c,1)::occurrences
+        else                             // If it is the same character
+          (o._1,o._2+1)::os              // Just count one more
+      }
+    }
 
-      } yield (aux ::occscombinations).filter(_._2>0)
+    occurrences match {
+      case Nil => List(List())                                             //Occurrences is empty
+      case (o::os) => {
+        val sub = {
+          if(o._2 > 1)                                                     // If letter is more than 1,
+            combinations((o._1,o._2-1)::os)                                // we can do the combinations on it (and count less one word)
+          else
+            combinations(os)                                               // If it is already 1, leave and just do the rest
+        }
+        val prefixedsub = sub map (i => increment(o._1,i))
+        sub:::prefixedsub
+      }
     }
   }
+
 
   /** Subtracts occurrence list `y` from occurrence list `x`.
     *
@@ -134,10 +151,12 @@ object Anagrams {
     *  and has no zero-entries.
     */
   def subtract(x: Occurrences, y: Occurrences): Occurrences = {
-    x.map(a=>y.find(_._1==a._1) match{
+    val first = x.map(
+      a=>y.find(_._1==a._1) match{
         case Some(b)=>(a._1,a._2-b._2)
-        case None =>a
-      }).filter(_._2!=0).sortWith(_._1<_._1)
+        case None => a
+      })
+    first.filter(_._2!=0).sortWith(_._1<_._1)                   // Remove if count is 0 and then sort it according to frequency
   }
 
   /** Returns a list of all anagram sentences of the given sentence.
@@ -180,18 +199,18 @@ object Anagrams {
     *
     *  Note: There is only one anagram of an empty sentence.
     */
-  def _aux(occs:Occurrences):List[Sentence]= {
-    occs match{
-      case Nil=>List(List())
-      case occ =>for {
-        comb    <-combinations(occ)
-        w       <- dictionaryByOccurrences getOrElse(comb,Nil)
-        s       <-_aux(subtract(occ, wordOccurrences(w)))
-      } yield w::s
-    }
-  }
-
   def sentenceAnagrams(sentence: Sentence): List[Sentence] = {
-    _aux(sentenceOccurrences(sentence))
+    def anagrams(occurences: Occurrences): List[Sentence] = occurences match {
+      case List() => List(List())
+      case _      => {
+        for {
+          combination <- combinations(occurences)
+          if (dictionaryByOccurrences.contains(combination))
+            word      <- dictionaryByOccurrences(combination)
+          rest        <- anagrams(subtract(occurences, combination))
+        } yield word :: rest
+      }
+    }
+    anagrams(sentenceOccurrences(sentence))
   }
 }
